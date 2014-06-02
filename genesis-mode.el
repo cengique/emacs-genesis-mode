@@ -91,20 +91,26 @@
   "Indent current line as GENESIS code."
   (interactive)
   (beginning-of-line)
+  (setq check-is-cont #'(lambda () (looking-at "^.*\\\\$"))) ; line ends with '\'?
   (if (bobp)
       (indent-line-to 0)	   ; First line is always non-indented
     (let ((not-indented t) cur-indent 
 	  ;; TODO: make new variable that tracks a cont-block during reverse parsing
-	  (is-cont (looking-at "^.*\\\\$"))) ; is line a continuation, ending with '\'?
+	  (is-cont (or (funcall check-is-cont) 	; either this or 
+		       (save-excursion 
+			 (forward-line -1) ; previous line
+			 (funcall check-is-cont))))) ; is a continuation
       ;; decrease indentation if..
       (if (or (looking-at "^[ \t]*end") ; If the line we are looking at is the end of a block
 	      ;; or if a line-continuation block just ended
-	      (save-excursion 
-		(and
-		 (forward-line -1)
-		 (not (looking-at "^.*\\\\$"))
-		 (forward-line -1)
-		 (looking-at "^.*\\\\$"))))
+	      (and 
+	       (not is-cont)		; We're not in continuation
+	       (save-excursion 		; A continuation block just ended
+		 (and
+		  (forward-line -1)	; Previous line is not cont,
+		  (not (funcall check-is-cont))
+		       (forward-line -1)	; but one before that was.
+		  (funcall check-is-cont)))))
 	  (progn
 	    (save-excursion
 	      (forward-line -1)
@@ -116,24 +122,22 @@
 	    (forward-line -1)
 	    ;; indent at the same level if..
 	    (if (or 
-		 ;; This hint indicates that we need to  of the end token
+		 ;; This hint indicates that we need to align with the end token
 		 (looking-at "^[ \t]*end") 
 		 ;; we're in an existing (last 2 lines) continuation block
-		 (and (looking-at "^.*\\\\$")
-		      (save-excursion
-			(forward-line -1)
-			(looking-at "^.*\\\\$"))))
+		 (and is-cont		; already in block, look for start
+		      (funcall check-is-cont)))	; this line is also in block
 		(progn
 		  (setq cur-indent (current-indentation))
 		  (setq not-indented nil))
 	      ;; This hint indicates that we need to indent an extra level
 	      (if (or (looking-at "^[ \t]*\\(if\\|function\\|foreach\\|for\\)")
 		      ;; a new line-continuation block started
-		      (save-excursion 
-			(and 
-			 (looking-at "^.*\\\\$")
-			 (forward-line -1)
-			 (not (looking-at "^.*\\\\$")))))
+		      (and is-cont	; We were in continuation
+			   (funcall check-is-cont) ; and we are still in.
+			   (save-excursion 
+			     (forward-line -1)	; But previous line is not cont.
+			     (not (funcall check-is-cont))))) ; So this is the first line of cont.
 		  (progn
 		    (setq cur-indent (+ (current-indentation) genesis-tab-width)) ; Do the actual indenting
 		    (setq not-indented nil))

@@ -1,6 +1,5 @@
-;;; genesis-mode.el -- For editing GENESIS neuron simulator script files
-;;; Modified from: wpdl-mode-el -- Major mode for editing WPDL files
-;;; and from DerivedMode example in Emacs Wiki.
+;;; genesis-mode.el -- Major mode for editing GENESIS neuron simulator script files.
+;;; Modified from: wpdl-mode-el and from DerivedMode example in Emacs Wiki.
 
 ;; Author: Cengiz Gunay <cengique@users.sf.net>
 ;; WPDL-Mode Author: Scott Andrew Borton <scott@pp.htv.fi>

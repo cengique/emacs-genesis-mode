@@ -65,7 +65,7 @@
 			 (forward-line -1) ; previous line
 			 (funcall check-is-cont))))) ; is a continuation
       ;; decrease indentation if..
-      (if (or (looking-at "^[ \t]*\\(end\\|pope\\)") ; If the line we are looking at is the end of a block
+      (if (or (looking-at "^[ \t]*\\(end\\|pope\\|else\\)") ; If the line we are looking at is the end of a block
 	      ;; or if a line-continuation block just ended
 	      (and 
 	       (not is-cont)		; We're not in continuation
@@ -91,7 +91,7 @@
 		  (setq cur-indent (current-indentation))
 		  (setq not-indented nil))
 	      ;; This hint indicates that we need to indent an extra level
-	      (if (or (looking-at "^[ \t]*\\(if\\|function\\|foreach\\|for\\|pushe\\)")
+	      (if (or (looking-at "^[ \t]*\\(if\\|else\\|function\\|foreach\\|for\\|pushe\\)")
 		      ;; a new line-continuation block started
 		      (and is-cont	; We were in continuation
 			   (funcall check-is-cont) ; and we are still in.

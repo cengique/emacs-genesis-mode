@@ -125,8 +125,9 @@
 		 ;; This hint indicates that we need to align with the end token
 		 (looking-at "^[ \t]*end") 
 		 ;; we're in an existing (last 2 lines) continuation block
-		 (and is-cont		; already in block, look for start
-		      (funcall check-is-cont)))	; this line is also in block
+		 )	; this line is also in block 
+		;; (and is-cont		; already in block, look for start
+		;; (funcall check-is-cont))
 		(progn
 		  (setq cur-indent (current-indentation))
 		  (setq not-indented nil))

@@ -1,6 +1,6 @@
-;;; genesis-mode.el -- Converted from:
-;;; wpdl-mode-el -- Major mode for editing WPDL files
-;;; and from DerivedMode example in Emacs Wiki
+;;; genesis-mode.el -- For editing GENESIS neuron simulator script files
+;;; Modified from: wpdl-mode-el -- Major mode for editing WPDL files
+;;; and from DerivedMode example in Emacs Wiki.
 
 ;; Author: Cengiz Gunay <cengique@users.sf.net>
 ;; WPDL-Mode Author: Scott Andrew Borton <scott@pp.htv.fi>
@@ -27,9 +27,9 @@
 
 ;;; Commentary:
 ;; 
-;; This mode is an example used in a tutorial about Emacs
+;; This mode uses an example used in a tutorial about Emacs
 ;; mode creation. The tutorial can be found here:
-;; http://two-wugs.net/emacs/mode-tutorial.html
+;; http://renormalist.net/Renormalist/EmacsLanguageModeCreationTutorial
 
 ;;; Code:
 (defvar genesis-mode-hook nil)
@@ -42,49 +42,13 @@
 (add-to-list 'auto-mode-alist '("\\.g\\'" . genesis-mode))
 
 (defvar genesis-keywords
-    '("if" "foreach" "end" "function" "echo" "setfield" "call")
+    '("if" "foreach" "end" "function" "echo" "setfield" "call" "while"
+      "addglobal" "getglobal" "listglobals" "setglobal")
     "Minimal highlighting expressions for GENESIS mode.")
 
-(defvar genesis-events
-    '("str" "int"))
+(defvar genesis-types
+    '("str" "int" "float"))
 
-(defconst genesis-font-lock-keywords-1
-  (list
-   ; These define the beginning and end of each GENESIS entity definition
-   ; 
-   ; "END_WORKFLOW" "ACTIVITY" "END_ACTIVITY" "TRANSITION"
-   ; "END_TRANSITION" "APPLICATION" "END_APPLICATION" "DATA" "END_DATA"
-   ; "TOOL_LIST" "END_TOOL_LIST"
-   '("\\<\\(A\\(CTIVITY\\|PPLICATION\\)\\|DATA\\|END_\\(A\\(CTIVITY\\|PPLICATION\\)\\|DATA\\|MODEL\\|PARTICIPANT\\|T\\(OOL_LIST\\|RANSITION\\)\\|WORKFLOW\\)\\|MODEL\\|PARTICIPANT\\|T\\(OOL_LIST\\|RANSITION\\)\\|WORKFLOW\\)\\>" . font-lock-builtin-face)
-   '("\\('\\w*'\\)" . font-lock-variable-name-face))
-  "Minimal highlighting expressions for GENESIS mode.")
-
-(defconst genesis-font-lock-keywords-2
-  (append genesis-font-lock-keywords-1
-	  (list
-					; These are some possible attributes of GENESIS entities
-					; "GENESIS_VERSION" "VENDOR" "CREATED" "NAME" "DESCRIPTION"
-					; "AUTHOR" "STATUS" "EXTENDED_ATTRIBUTE" "TYPE" "TOOLNAME"
-					; "IN_PARAMETERS" "OUT_PARAMETERS" "DEFAULT_VALUE"
-					; "IMPLEMENTATION" "PERFORMER" "SPLIT" "CONDITION" "ROUTE"
-					; "JOIN" "OTHERWISE" "TO" "FROM"
-		   '("\\<\\(AUTHOR\\|C\\(ONDITION\\|REATED\\)\\|DE\\(FAULT_VALUE\\|SCRIPTION\\)\\|EXTENDED_ATTRIBUTE\\|FROM\\|I\\(MPLEMENTATION\\|N_PARAMETERS\\)\\|JOIN\\|NAME\\|O\\(THERWISE\\|UT_PARAMETERS\\)\\|PERFORMER\\|ROUTE\\|S\\(PLIT\\|TATUS\\)\\|T\\(O\\(OLNAME\\)?\\|YPE\\)\\|VENDOR\\|GENESIS_VERSION\\)\\>" . font-lock-keyword-face)
-		   '("\\<\\(TRUE\\|FALSE\\)\\>" . font-lock-constant-face)))
-  "Additional Keywords to highlight in GENESIS mode.")
-
-(defconst genesis-font-lock-keywords-3
-  (append genesis-font-lock-keywords-2
-	  (list 	; These are some possible built-in values for GENESIS attributes
-					; "ROLE" "ORGANISATIONAL_UNIT" "STRING" "REFERENCE" "AND"
-					; "XOR" "WORKFLOW" "SYNCHR" "NO" "APPLICATIONS" "BOOLEAN"
-					; "INTEGER" "HUMAN" "UNDER_REVISION" "OR"
-		   '("\\<\\(A\\(ND\\|PPLICATIONS\\)\\|BOOLEAN\\|HUMAN\\|INTEGER\\|NO\\|OR\\(GANISATIONAL_UNIT\\)?\\|R\\(EFERENCE\\|OLE\\)\\|S\\(TRING\\|YNCHR\\)\\|UNDER_REVISION\\|WORKFLOW\\|XOR\\)\\>" . font-lock-constant-face)))
-  "Balls-out highlighting in GENESIS mode.")
-
-(defvar genesis-font-lock-keywords genesis-font-lock-keywords-3
-  "Default highlighting expressions for GENESIS mode.")
-
-;; I'd probably put in a default that you want, as opposed to nil
 (defvar genesis-tab-width 2 "Width of a tab for GENESIS mode")
 
 ;; This is the main function I needed from WPDL-Mode
@@ -149,35 +113,7 @@
 	  (indent-line-to cur-indent)
 	(indent-line-to 0))))) ; If we didn't see an indentation hint, then allow no indentation
 
-;; (defvar genesis-mode-syntax-table
-;;   (let ((genesis-mode-syntax-table (make-syntax-table)))
-	
-;;     ; This is added so entity names with underscores can be more easily parsed
-;; 	(modify-syntax-entry ?_ "w" genesis-mode-syntax-table)
-	
-;; 	; Comment styles are same as C++
-;; 	(modify-syntax-entry ?/ ". 124b" genesis-mode-syntax-table)
-;; 	(modify-syntax-entry ?* ". 23" genesis-mode-syntax-table)
-;; 	(modify-syntax-entry ?\n "> b" genesis-mode-syntax-table)
-;; 	genesis-mode-syntax-table)
-;;   "Syntax table for genesis-mode")
-
-;; WPDL example commented out
-;; (defun genesis-mode ()
-;;   (interactive)
-;;   (kill-all-local-variables)
-;;   (use-local-map genesis-mode-map)
-;;   (set-syntax-table genesis-mode-syntax-table)
-;;   ;; Set up font-lock
-;;   (set (make-local-variable 'font-lock-defaults) '(genesis-font-lock-keywords))
-;;   ;; Register our indentation function
-;;   (set (make-local-variable 'indent-line-function) 'genesis-indent-line)  
-;;   (setq major-mode 'genesis-mode)
-;;   (setq mode-name "GENESIS")
-;;   (run-hooks 'genesis-mode-hook))
-
-  
-  
+;; Modified from DerivedMode example:
 ;; Two small edits.
 ;; First is to put an extra set of parens () around the list
 ;; which is the format that font-lock-defaults wants
@@ -190,7 +126,8 @@
      ;; ; : , ; { } =>  @ $ = are all special elements
      (":\\|,\\|;\\|{\\|}\\|=>\\|@\\|$\\|=" . font-lock-keyword-face)
      ( ,(regexp-opt genesis-keywords 'words) . font-lock-builtin-face)
-     ( ,(regexp-opt genesis-events 'words) . font-lock-constant-face)
+     ( ,(regexp-opt genesis-types 'words) . font-lock-type-face) 
+     ;; there is also font-lock-constant-face
      )))
   
 (define-derived-mode genesis-mode fundamental-mode "GENESIS script"

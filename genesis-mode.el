@@ -85,13 +85,8 @@
 	  (while not-indented ; Iterate backwards until we find an indentation hint
 	    (forward-line -1)
 	    ;; indent at the same level if..
-	    (if (or 
-		 ;; This hint indicates that we need to align with the end token
-		 (looking-at "^[ \t]*\\(end\\|pope\\)") 
-		 ;; we're in an existing (last 2 lines) continuation block
-		 )	; this line is also in block 
-		;; (and is-cont		; already in block, look for start
-		;; (funcall check-is-cont))
+	    ;; This hint indicates that we need to align with the end token
+	    (if (looking-at "^[ \t]*\\(end\\|pope\\)")
 		(progn
 		  (setq cur-indent (current-indentation))
 		  (setq not-indented nil))

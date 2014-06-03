@@ -42,7 +42,7 @@
 (add-to-list 'auto-mode-alist '("\\.g\\'" . genesis-mode))
 
 (defvar genesis-keywords
-    '("if" "foreach" "end" "function" "echo" "setfield" "call" "while"
+    '("if" "for" "foreach" "end" "function" "echo" "setfield" "call" "while"
       "addglobal" "getglobal" "listglobals" "setglobal")
     "Minimal highlighting expressions for GENESIS mode.")
 

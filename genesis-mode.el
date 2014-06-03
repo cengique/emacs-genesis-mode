@@ -55,7 +55,7 @@
   "Indent current line as GENESIS code."
   (interactive)
   (beginning-of-line)
-  (setq check-is-cont #'(lambda () (looking-at "^.*\\\\$"))) ; line ends with '\'?
+  (setq check-is-cont #'(lambda () (looking-at "^.*\\\\[ \t]*\\($\\|//\\)"))) ; line ends with '\'?
   (if (bobp)
       (indent-line-to 0)	   ; First line is always non-indented
     (let ((not-indented t) cur-indent 

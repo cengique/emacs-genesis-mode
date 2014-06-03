@@ -1,12 +1,14 @@
 ;;; genesis-mode.el -- Major mode for editing GENESIS neuron simulator script files.
 ;;; Modified from: wpdl-mode-el and from DerivedMode example in Emacs Wiki.
 
-;; Author: Cengiz Gunay <cengique@users.sf.net>
+;; Authors: Cengiz Gunay <cengique@users.sf.net> and 
+;; 	    Hugo Cornelis <hugo.cornelis@gmail.com>
 ;; WPDL-Mode Author: Scott Andrew Borton <scott@pp.htv.fi>
 ;; Created: 30 May 2014
 ;; Keywords: Genesis major-mode
 
 ;; Copyright (C) 2014 Cengiz Gunay <cengique@users.sf.net>
+;; Copyright (C) 2005-2006 Hugo Cornelis
 ;; Copyright (C) 2000, 2003 Scott Andrew Borton <scott@pp.htv.fi>
 
 ;; This program is free software; you can redistribute it and/or
@@ -40,13 +42,70 @@
 
 (add-to-list 'auto-mode-alist '("\\.g\\'" . genesis-mode))
 
-(defvar genesis-keywords
-    '("if" "for" "foreach" "end" "function" "echo" "setfield" "call" "while"
-      "addglobal" "getglobal" "listglobals" "setglobal")
-    "Minimal highlighting expressions for GENESIS mode.")
+(defvar genesis-keywords-functions
+  '("if" "else" "elif" "for" "foreach" "end" "function" "call" "while"
+    "return" "continue" "break" "addglobal" "getglobal" "listglobals" "setglobal"
+    "abort" "abs" "acos" "addaction" "addalias" "addclass" "addescape"
+    "addfield" "addforwmsg" "addglobal" "addmsg" "addmsgdef" "addobject"
+    "addtask" "argc" "arglist" "argv" "asciidata" "asin" "atan" "call"
+    "callfunc" "cd" "ce" "cellsheet" "check" "chr" "clearerrors"
+    "closefile" "convert" "copy" "cos" "countchar" "countelementlist"
+    "cpu" "create" "createmap" "debug" "delete" "deleteaction" "deleteall"
+    "deleteclass" "deletefield" "deleteforwmsg" "deletemsg" "deletemsgdef"
+    "deletetasks" "disable" "duplicatetable" "echo" "egg" "el" "enable"
+    "enddump" "eof" "exists" "exit" "exp" "extern" "file2tab"
+    "fileconnect" "findchar" "findsolvefield" "floatformat" "flushfile"
+    "gaussian" "gen2spk" "genesis" "getarg" "getclock" "getdate"
+    "getdefault" "getelementlist" "getenv" "getfield" "getfieldnames"
+    "getglobal" "getmsg" "getparamGA" "getpath" "getsolvechildname"
+    "getsolvecompname" "getstat" "getsyncount" "getsyndest" "getsynindex"
+    "getsynsrc" "h" "help" "initdump" "initparamBF" "initparamCG"
+    "initparamGA" "initparamSA" "initparamSS" "input" "isa" "le"
+    "listcommands" "listescape" "listfiles" "listglobals" "listobjects"
+    "loadtab" "log" "logfile" "max" "maxerrors" "maxwarnings" "min" "move"
+    "msgsubstitute" "notes" "objsubstitute" "openfile" "planarconnect"
+    "planardelay" "planardelay2" "planarweight" "planarweight2" "plane"
+    "pope" "position" "pow" "printargs" "printenv" "pushe" "putevent"
+    "pwe" "quit" "rand" "randcoord" "randseed" "readcell" "readfile"
+    "reclaim" "relposition" "resched" "reset" "resetsynchanbuffers"
+    "restore" "rotcoord" "round" "save" "scaletabchan" "setclock"
+    "setdefault" "setenv" "setfield" "setfieldprot" "setglobal"
+    "setmethod" "setparamGA" "setpostscript" "setprompt" "setrand"
+    "setrandfield" "setsearch" "setupNaCa" "setupalpha" "setupgate"
+    "setupghk" "setuptau" "sh" "shapematch" "showclocks" "showcommand"
+    "showfield" "showmsg" "showobject" "showsched" "showstat" "silent"
+    "simdump" "simobjdump" "simundump" "sin" "spkcmp" "sqrt" "stack"
+    "step" "stop" "strcat" "strcmp" "strlen" "strncmp" "strsub"
+    "substituteinfo" "substring" "swapdump" "syndelay" "tab2file" "tan"
+    "trunc" "tweakalpha" "tweaktau" "useclock" "version" "volumeconnect"
+    "volumedelay" "volumedelay2" "volumeweight" "volumeweight2" "where"
+    "writecell" "writefile" "xcolorscale" "xgetstat" "xps" "xsimplot"
+    "include" "pixflags" "xflushevents" "xhide" "xinit" "xlower" "xmap"
+    "xpixflags" "xraise" "xshow" "xshowontop" "xtextload" "xupdate")
+    "Keyword and function highlighting expressions for GENESIS mode.")
 
 (defvar genesis-types
-    '("str" "int" "float"))
+    '("str" "int" "float")
+    "Data type highlighting list for GENESIS mode.")
+
+(defvar genesis-objects
+  '("Ca_concen" "Kpores" "Mg_block" "Napores" "PID" "RC" "asc_file"
+    "autocorr" "calculator" "compartment" "concchan" "concpool"
+    "crosscorr" "ddsyn" "dif2buffer" "difbuffer" "diffamp" "difshell"
+    "disk_in" "disk_out" "diskio" "efield" "enz" "event_tofile"
+    "facsynchan" "fixbuffer" "freq_monitor" "funcgen" "fura2" "ghk"
+    "hebbsynchan" "hh_channel" "hillpump" "hsolve" "interspike" "leakage"
+    "metadata" "mmpump" "nernst" "neutral" "paramtableBF" "paramtableCG"
+    "paramtableGA" "paramtableSA" "paramtableSS" "peristim" "playback"
+    "pool" "pulsegen" "randomspike" "reac" "receptor" "receptor2"
+    "script_out" "sigmoid" "spikegen" "spikehistory" "symcompartment"
+    "synchan" "synchan2" "tab2Dchannel" "tabchannel" "tabcurrent"
+    "tabgate" "table" "table2D" "taupump" "timetable" "variable"
+    "vdep_channel" "xbutton" "xcell" "xcoredraw" "xdialog" "xdraw"
+    "xdumbdraw" "xfastplot" "xform" "xgif" "xgraph" "ximage" "xlabel"
+    "xpix" "xplot" "xshape" "xsphere" "xtext" "xtoggle" "xtree" "xvar"
+    "xview")
+    "Object highlighting expressions for GENESIS mode.")
 
 (defvar genesis-tab-width 2 "Width of a tab for GENESIS mode")
 
@@ -119,8 +178,9 @@
      ("\"\\.\\*\\?" . font-lock-string-face)
      ;; ; : , ; { } =>  @ $ = are all special elements
      (":\\|,\\|;\\|{\\|}\\|=>\\|@\\|$\\|=" . font-lock-keyword-face)
-     ( ,(regexp-opt genesis-keywords 'words) . font-lock-builtin-face)
+     ( ,(regexp-opt genesis-keywords-functions 'words) . font-lock-builtin-face)
      ( ,(regexp-opt genesis-types 'words) . font-lock-type-face) 
+     ( ,(regexp-opt genesis-objects 'words) . font-lock-constant-face) 
      ;; there is also font-lock-constant-face
      )))
   

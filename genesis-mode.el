@@ -32,6 +32,9 @@
 ;; mode creation. The tutorial can be found here:
 ;; http://renormalist.net/Renormalist/EmacsLanguageModeCreationTutorial
 
+(require 'custom)
+(require 'cc-vars)
+
 ;;; Code:
 (defvar genesis-mode-hook nil)
 (defvar genesis-mode-map
@@ -40,7 +43,12 @@
     genesis-mode-map)
   "Keymap for GENESIS major mode")
 
+;; recognise .g files as genesis files
 (add-to-list 'auto-mode-alist '("\\.g\\'" . genesis-mode))
+
+;; recognise .p files as c++ files
+(add-to-list 'auto-mode-alist '("\\.p$" . c++-mode))
+
 
 (defvar genesis-keywords-functions
   '("if" "else" "elif" "for" "foreach" "end" "function" "call" "while"
@@ -109,7 +117,7 @@
 
 (defvar genesis-tab-width 2 "Width of a tab for GENESIS mode")
 
-;; This is the main function I needed from WPDL-Mode
+;; CG: This is the main function I needed from WPDL-Mode
 (defun genesis-indent-line ()
   "Indent current line as GENESIS code."
   (interactive)
@@ -183,9 +191,89 @@
      ( ,(regexp-opt genesis-objects 'words) . font-lock-constant-face) 
      ;; there is also font-lock-constant-face
      )))
-  
+
+;;; configure function menu for genesis mode
+;;; Hugo Cornelis <hugo.cornelis@gmail.com>
+(if (featurep 'xemacs)
+    (defvar fume-function-name-regexp-genesis ; For Xemacs, use func-menu
+      "^\\(function\\|procedure\\)\\([ \t]+\\([_a-zA-Z][_a-zA-Z0-9]*\\)\\|[ \t]+\\)$"
+      "Expression to get genesis function Names")
+  (setq fume-function-name-regexp-genesis ; For GNU Emacs, use Imenu
+    '(("Function" "^function\\([ \t]+\\([_a-zA-Z][_a-zA-Z0-9]*\\)\\|[ \t]+\\)" 1))
+    "Expression to get Genesis function names"))
+
+
+;;; Specialised routine to get the next genesis function in the buffer
+;;; Hugo Cornelis <hugo@bbf.uia.ac.be>
+(defun fume-find-next-genesis-function-name (buffer)
+  "Searches for the next genesis function in BUFFER."
+  (set-buffer buffer)
+  ;; Search for the function
+  (if (re-search-forward fume-function-name-regexp-genesis nil t)
+      (let ((char (progn
+                    (backward-up-list 1)
+                    (save-excursion
+                      (goto-char (scan-sexps (point) 1))
+                      (skip-chars-forward "[ \t\n]")
+                      (following-char)))))
+        ;; Skip this function name if it is a prototype declaration.
+	;; should still be recoded for genesis function prototypes.
+	;; then I have to test on '^[ \t]*extern' ?
+        (if (eq char ?\;)
+            (fume-find-next-c-function-name buffer)
+          (let (beg
+                name)
+            ;; Get the function name and position
+            (forward-sexp -1)
+            (setq beg (point))
+            (forward-sexp)
+            (setq name (buffer-substring beg (point)))
+            ;; ghastly crock for DEFUN declarations
+            (cond ((string-match "^DEFUN\\s-*" name)
+                   (forward-word 1)
+                   (forward-word -1)
+                   (setq beg (point))
+                   (cond ((re-search-forward "\"," nil t)
+                          (re-search-backward "\"," nil t)
+                          (setq name
+                                (format "%s %s"
+                                        name
+                                        (buffer-substring beg (point))))))))
+            ;; kludge to avoid `void' etc in menu
+            (if (string-match
+                "\\`\\(void\\|if\\|else if\\|else\\|switch\\|for\\|while\\)\\'"
+		name)
+                (fume-find-next-c-function-name buffer)
+              (cons name beg)))))))
+
+(add-hook 'genesis-mode-hook
+	  (lambda ()
+	    (if (featurep 'xemacs)
+		(progn
+		  (require 'func-menu)
+		  ;; add function parser for genesis mode
+		  (setq fume-function-name-regexp-alist
+			(append '((genesis-mode . fume-function-name-regexp-genesis))
+				fume-function-name-regexp-alist))
+		  (setq fume-find-function-name-method-alist
+			(append '((genesis-mode . fume-find-next-genesis-function-name))
+				fume-find-function-name-method-alist)))
+	      (progn			; In GNU Emacs
+		(setq imenu-generic-expression fume-function-name-regexp-genesis)
+		(imenu-add-menubar-index)))))
+
+(easy-menu-define c-genesis-menu genesis-mode-map "Genesis Mode Commands"
+		  (c-mode-menu "Genesis"))
+
+;; CG: Use DerivedMode
 (define-derived-mode genesis-mode fundamental-mode "GENESIS script"
-    "GENESIS mode is a major mode for editing GENESIS  files"
+    "GENESIS major mode is for editing GENESIS neuron simulator script files.
+
+The hook variable `genesis-mode-hook' is run with no args, if that
+variable is bound and has a non-nil value.
+
+Key bindings:
+\\{genesis-mode-map}"
 
     ;; from WPDL mode example
     (use-local-map genesis-mode-map)  

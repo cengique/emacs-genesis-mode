@@ -32,6 +32,11 @@
 ;; mode creation. The tutorial can be found here:
 ;; http://renormalist.net/Renormalist/EmacsLanguageModeCreationTutorial
 
+;; TODO:
+;; - test in Xemacs
+;; - add installation instructions, updated README.md
+
+;; are these necessary?
 (require 'custom)
 (require 'cc-vars)
 

@@ -39,6 +39,7 @@
 ;; are these necessary?
 (require 'custom)
 (require 'cc-vars)
+(require 'cc-mode)
 
 ;;; Code:
 (defvar genesis-mode-hook nil)
@@ -205,7 +206,7 @@
       "Expression to get genesis function Names")
   (setq fume-function-name-regexp-genesis ; For GNU Emacs, use Imenu
     '(("Function" "^function\\([ \t]+\\([_a-zA-Z][_a-zA-Z0-9]*\\)\\|[ \t]+\\)" 1))
-    "Expression to get Genesis function names"))
+    ))
 
 
 ;;; Specialised routine to get the next genesis function in the buffer

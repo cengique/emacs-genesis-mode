@@ -48,13 +48,13 @@
 ;; MA 02111-1307 USA
 
 ;; TODO:
-;; - test in Xemacs
-;; - add installation instructions, updated README.md
+;; - function menu doesn't work in Xemacs
+;; - Unify syntax highlighting for both emacses
 
-;; are these necessary?
 (require 'custom)
 (require 'cc-vars)
 (require 'cc-mode)
+(require 'cc-menus)
 
 ;;; Code:
 (defvar genesis-mode-hook nil)
@@ -136,9 +136,38 @@
     "xview")
     "Object highlighting expressions for GENESIS mode.")
 
+;; Modified from DerivedMode example
+(if (featurep 'emacs)
+    (defvar genesis-font-lock-defaults
+      `((
+	 ;; stuff between "
+	 ("\"\\.\\*\\?" . font-lock-string-face)
+	 ;; ; : , ; { } =>  @ $ = are all special elements
+	 (":\\|,\\|;\\|{\\|}\\|=>\\|@\\|$\\|=" . font-lock-keyword-face)
+	 ( ,(regexp-opt genesis-keywords-functions 'words) . font-lock-builtin-face)
+	 ( ,(regexp-opt genesis-types 'words) . font-lock-type-face) 
+	 ( ,(regexp-opt genesis-objects 'words) . font-lock-constant-face) 
+	 ("^[ \n\t]*\\(function\\|extern\\)[ \t]+\\([^ \t(]+\\)" 2 font-lock-function-name-face)
+	 )))
+  (defvar genesis-font-lock-defaults
+    `(
+     ;; stuff between "
+     ("\"\\.\\*\\?" . font-lock-string-face)
+     ;; ; : , ; { } =>  @ $ = are all special elements
+     (",\\|;\\|=" . font-lock-keyword-face)
+     ( ,(regexp-opt genesis-keywords-functions 'words) . font-lock-builtin-face)
+     ( ,(regexp-opt genesis-types 'words) . font-lock-type-face) 
+     ( ,(regexp-opt genesis-objects 'words) . font-lock-constant-face) 
+     ("^[ \n\t]*\\(function\\|extern\\)[ \t]+\\([^ \t(]+\\)" 2 font-lock-function-name-face)
+     ("\\(--- .* ---\\|=== .* ===\\)" . font-lock-string-face)
+     )))
+
+
 (defvar genesis-tab-width 2 "Width of a tab for GENESIS mode")
 
-;; CG: This is the main function I needed from WPDL-Mode
+;; CG: This is the main function I needed from WPDL-Mode. It's been
+;; heavily modified for GENESIS syntax.
+;; BUG: New keywords on line continuation ends are ignored
 (defun genesis-indent-line ()
   "Indent current line as GENESIS code."
   (interactive)
@@ -195,29 +224,11 @@
 	  (indent-line-to cur-indent)
 	(indent-line-to 0))))) ; If we didn't see an indentation hint, then allow no indentation
 
-;; Modified from DerivedMode example:
-;; Two small edits.
-;; First is to put an extra set of parens () around the list
-;; which is the format that font-lock-defaults wants
-;; Second, you used ' (quote) at the outermost level where you wanted ` (backquote)
-;; you were very close
-(defvar genesis-font-lock-defaults
-  `((
-     ;; stuff between "
-     ("\"\\.\\*\\?" . font-lock-string-face)
-     ;; ; : , ; { } =>  @ $ = are all special elements
-     (":\\|,\\|;\\|{\\|}\\|=>\\|@\\|$\\|=" . font-lock-keyword-face)
-     ( ,(regexp-opt genesis-keywords-functions 'words) . font-lock-builtin-face)
-     ( ,(regexp-opt genesis-types 'words) . font-lock-type-face) 
-     ( ,(regexp-opt genesis-objects 'words) . font-lock-constant-face) 
-     ;; there is also font-lock-constant-face
-     )))
-
 ;;; configure function menu for genesis mode
 ;;; Hugo Cornelis <hugo.cornelis@gmail.com>
 (if (featurep 'xemacs)
     (defvar fume-function-name-regexp-genesis ; For Xemacs, use func-menu
-      "^\\(function\\|procedure\\)\\([ \t]+\\([_a-zA-Z][_a-zA-Z0-9]*\\)\\|[ \t]+\\)$"
+      "^[ \t]*function\\([ \t]+\\([_a-zA-Z][_a-zA-Z0-9]*\\)\\|[ \t]+\\)"
       "Expression to get genesis function Names")
   (setq fume-function-name-regexp-genesis ; For GNU Emacs, use Imenu
     '(("Function" "^function\\([ \t]+\\([_a-zA-Z][_a-zA-Z0-9]*\\)\\|[ \t]+\\)" 1))
@@ -267,27 +278,34 @@
                 (fume-find-next-c-function-name buffer)
               (cons name beg)))))))
 
+;; Register function menu rules for Xemacs
+;; add function parser for genesis mode
+(if (featurep 'xemacs)
+    (progn 
+      (require 'func-menu)
+      (setq fume-function-name-regexp-alist
+	    (append '((genesis-mode . fume-function-name-regexp-genesis))
+		    fume-function-name-regexp-alist))
+      (setq fume-find-function-name-method-alist
+	    (append '((genesis-mode . fume-find-next-genesis-function-name))
+		    fume-find-function-name-method-alist))))
+
 (add-hook 'genesis-mode-hook
 	  (lambda ()
 	    (if (featurep 'xemacs)
 		(progn
-		  (require 'func-menu)
-		  ;; add function parser for genesis mode
-		  (setq fume-function-name-regexp-alist
-			(append '((genesis-mode . fume-function-name-regexp-genesis))
-				fume-function-name-regexp-alist))
-		  (setq fume-find-function-name-method-alist
-			(append '((genesis-mode . fume-find-next-genesis-function-name))
-				fume-find-function-name-method-alist)))
+		  (turn-on-fume-mode)
+		  (easy-menu-define c-genesis-menu genesis-mode-map "Genesis Mode Commands"
+		    (c-mode-menu "Genesis"))
+		  (easy-menu-add c-genesis-menu genesis-mode-map))
 	      (progn			; In GNU Emacs
 		(setq imenu-generic-expression fume-function-name-regexp-genesis)
 		(imenu-add-menubar-index)))))
 
-(easy-menu-define c-genesis-menu genesis-mode-map "Genesis Mode Commands"
-		  (c-mode-menu "Genesis"))
 
-;; CG: Use DerivedMode
-(define-derived-mode genesis-mode fundamental-mode "GENESIS script"
+
+;; CG: Use DerivedMode from c-mode to take comment definitions
+(define-derived-mode genesis-mode c-mode "GENESIS script"
     "GENESIS major mode is for editing GENESIS neuron simulator script files.
 
 The hook variable `genesis-mode-hook' is run with no args, if that
@@ -296,37 +314,35 @@ variable is bound and has a non-nil value.
 Key bindings:
 \\{genesis-mode-map}"
 
+    ;; From Hugo
+    (interactive)
+    ;(c-initialize-cc-mode)
+
     ;; from WPDL mode example
     (use-local-map genesis-mode-map)  
   
-    ;; you again used quote when you had '((genesis-hilite))
-    ;; I just updated the variable to have the proper nesting (as noted above)
-    ;; and use the value directly here
-    (setq font-lock-defaults genesis-font-lock-defaults)
-  
+    ;; set fontification rules for (X)Emacs
+    (if (featurep 'emacs)
+	(setq font-lock-defaults genesis-font-lock-defaults)
+      (setq font-lock-defaults '(genesis-font-lock-defaults)))
+      
     ;; when there's an override, use it
     ;; otherwise it gets the default value
     (when genesis-tab-width
       (setq tab-width genesis-tab-width))
   
-    ;; for comments
-    ;; overriding these vars gets you what (I think) you want
-    ;; they're made buffer local when you set them
-    (setq comment-start "/*")
-    (setq comment-end "*/")
-
-    ;; indentation -- from WPDL mode example
+    ;; indentation
     (set (make-local-variable 'indent-line-function) 'genesis-indent-line)  
 
-    ;; Comment styles are same as C++
-    (modify-syntax-entry ?/ ". 124b" genesis-mode-syntax-table)
-    (modify-syntax-entry ?* ". 23" genesis-mode-syntax-table)
-    (modify-syntax-entry ?\n "> b" genesis-mode-syntax-table)
-  
-    ;;A gnu-correct program will have some sort of hook call here.
+    ;; From Hugo (these mess up comment indentation)
+    ;(c-common-init)
+
+    ;; Call mode hooks
+    ;(run-hooks 'c-mode-common-hook)
     (run-hooks 'genesis-mode-hook)
+    ;(c-update-modeline)
     )
-  
+
 (provide 'genesis-mode)
 
 ;;; genesis-mode.el ends here

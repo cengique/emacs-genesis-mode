@@ -57,8 +57,13 @@
 ;; TODO:
 ;; - function menu doesn't work in Xemacs
 ;; - Unify syntax highlighting for both emacses
-;; - Indentation: 'end' on line after continuation ends are ignored
-;; - Indentation: Sometimes takes previous line's wrong indentation even if it's only whitespace
+;; - Indentation bugs: 
+;;   - 'end' on line after continuation ends are ignored
+;;   - Sometimes takes previous line's wrong indentation even if it's
+;;   only whitespace
+;;   - if two continuation blocks don't have any indentation hints in
+;;   between (like an end keyword), they fuse together onto same
+;;   offset.
 
 (require 'custom)
 (require 'cc-vars)

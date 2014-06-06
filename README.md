@@ -5,21 +5,6 @@ Emacs major mode for editing GENESIS neuron simulator script files.
 
 Modified from: wpdl-mode-el and from DerivedMode example in Emacs Wiki.
 
-*Authors:* Cengiz Gunay <cengique@users.sf.net> and 
- 	    Hugo Cornelis <hugo.cornelis@gmail.com>
-
-*WPDL-Mode Author:* Scott Andrew Borton <scott@pp.htv.fi>
-
-*Created:* 30 May 2014
-
-*Keywords:* Genesis major-mode
-
-Copyright (C) 2014 Cengiz Gunay <cengique@users.sf.net>
-
-Copyright (C) 2005-2006 Hugo Cornelis
-
-Copyright (C) 2000, 2003 Scott Andrew Borton <scott@pp.htv.fi>
-
 Installation:
 --------------
 
@@ -43,16 +28,44 @@ This mode provides:
 * automatic indentation with the tab key
 * function index menu item
 
-It is based on an example used in a tutorial about Emacs
-mode creation. The tutorial can be found here:
+It is based on original Xemacs major mode by HC and an example used in
+a tutorial about Emacs mode creation. The tutorial can be found here:
 http://renormalist.net/Renormalist/EmacsLanguageModeCreationTutorial
 
-TODO:
+TODO
 ----------
- - not tested in Xemacs
 
-LICENSE
+* Fix `function-menu` in Xemacs
+
+* Unify syntax highlighting for both Emacses
+* Indentation: 'end' on line after continuation ends are ignored
+* Indentation: Sometimes takes previous line's wrong indentation even if it's only whitespace
+
+
+CREDITS AND LICENSE
 -------------
+
+*Authors:* Cengiz Gunay (cengique AT users.sf.net) and 
+ 	    Hugo Cornelis (hugo.cornelis AT gmail.com)
+
+*WPDL-Mode Author:* Scott Andrew Borton (scott AT pp.htv.fi)
+
+*Contributors:*
+
+* Jim Perlewitz (perlewitz AT earthlink.net) - Supplied full list of
+	Genesis 2.3 functions and objects (2014/06/06).
+* Zbigniew Jędrzejewski-Szmek (zjedrzej AT gmu.edu) - Bugfixes and
+	testing (2014/06/05).
+
+*Created:* 30 May 2014
+
+*Keywords:* Genesis major-mode
+
+Copyright (C) 2014 Cengiz Gunay 
+
+Copyright (C) 2005-2006 Hugo Cornelis
+
+Copyright (C) 2000, 2003 Scott Andrew Borton
 
  This program is free software; you can redistribute it and/or
  modify it under the terms of the GNU General Public License as

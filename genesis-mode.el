@@ -1,16 +1,6 @@
 ;;; genesis-mode.el -- Major mode for editing GENESIS neuron simulator script files.
 ;;; Modified from: wpdl-mode-el and from DerivedMode example in Emacs Wiki.
 
-;; Authors: Cengiz Gunay <cengique@users.sf.net> and 
-;; 	    Hugo Cornelis <hugo.cornelis@gmail.com>
-;; WPDL-Mode Author: Scott Andrew Borton <scott@pp.htv.fi>
-;; Created: 30 May 2014
-;; Keywords: Genesis major-mode
-
-;; Copyright (C) 2014 Cengiz Gunay <cengique@users.sf.net>
-;; Copyright (C) 2005-2006 Hugo Cornelis
-;; Copyright (C) 2000, 2003 Scott Andrew Borton <scott@pp.htv.fi>
-
 ;;; Installation:
 
 ;; Load this file in (X)Emacs. Placing it under ~/.emacs.d/ should
@@ -21,7 +11,7 @@
 ;; In XEmacs, you could place the following in your ~/.xemacs/init.el file:
 ;; 	(load-file "~/.xemacs/genesis-mode.el")
 
-;;; Notes:
+;;; Functionality:
 ;; 
 ;; This mode provides:
 ;; * syntax highlighting for Genesis keywords, functions, and objects. 
@@ -31,6 +21,23 @@
 ;; This mode uses an example used in a tutorial about Emacs
 ;; mode creation. The tutorial can be found here:
 ;; http://renormalist.net/Renormalist/EmacsLanguageModeCreationTutorial
+
+;; Authors: Cengiz Gunay <cengique@users.sf.net> and 
+;; 	    Hugo Cornelis <hugo.cornelis@gmail.com>
+;; WPDL-Mode Author: Scott Andrew Borton <scott@pp.htv.fi>
+
+;; Contributors:
+;; * Jim Perlewitz <perlewitz@earthlink.net> - Supplied full list of
+;; 	Genesis 2.3 functions and objects (2014/06/06).
+;; * Zbigniew Jędrzejewski-Szmek <zjedrzej@gmu.edu> - Bugfixes and
+;; 	testing (2014/06/05).
+
+;; Created: 30 May 2014
+;; Keywords: Genesis major-mode
+
+;; Copyright (C) 2014 Cengiz Gunay <cengique@users.sf.net>
+;; Copyright (C) 2005-2006 Hugo Cornelis
+;; Copyright (C) 2000, 2003 Scott Andrew Borton <scott@pp.htv.fi>
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -50,6 +57,8 @@
 ;; TODO:
 ;; - function menu doesn't work in Xemacs
 ;; - Unify syntax highlighting for both emacses
+;; - Indentation: 'end' on line after continuation ends are ignored
+;; - Indentation: Sometimes takes previous line's wrong indentation even if it's only whitespace
 
 (require 'custom)
 (require 'cc-vars)
@@ -72,45 +81,58 @@
 
 
 (defvar genesis-keywords-functions
-  '("if" "else" "elif" "for" "foreach" "end" "function" "call" "while"
-    "return" "continue" "break" "addglobal" "getglobal" "listglobals" "setglobal"
+  '(;; genesis keywords missing from below
+    "function" "continue" "break" "else" "elif"
+    ;; genesis2.3 command list from Jim Perlewitz
     "abort" "abs" "acos" "addaction" "addalias" "addclass" "addescape"
-    "addfield" "addforwmsg" "addglobal" "addmsg" "addmsgdef" "addobject"
-    "addtask" "argc" "arglist" "argv" "asciidata" "asin" "atan" "call"
-    "callfunc" "cd" "ce" "cellsheet" "check" "chr" "clearerrors"
-    "closefile" "convert" "copy" "cos" "countchar" "countelementlist"
-    "cpu" "create" "createmap" "debug" "delete" "deleteaction" "deleteall"
-    "deleteclass" "deletefield" "deleteforwmsg" "deletemsg" "deletemsgdef"
-    "deletetasks" "disable" "duplicatetable" "echo" "egg" "el" "enable"
-    "enddump" "eof" "exists" "exit" "exp" "extern" "file2tab"
-    "fileconnect" "findchar" "findsolvefield" "floatformat" "flushfile"
-    "gaussian" "gen2spk" "genesis" "getarg" "getclock" "getdate"
-    "getdefault" "getelementlist" "getenv" "getfield" "getfieldnames"
-    "getglobal" "getmsg" "getparamGA" "getpath" "getsolvechildname"
-    "getsolvecompname" "getstat" "getsyncount" "getsyndest" "getsynindex"
-    "getsynsrc" "h" "help" "initdump" "initparamBF" "initparamCG"
-    "initparamGA" "initparamSA" "initparamSS" "input" "isa" "le"
-    "listcommands" "listescape" "listfiles" "listglobals" "listobjects"
-    "loadtab" "log" "logfile" "max" "maxerrors" "maxwarnings" "min" "move"
-    "msgsubstitute" "notes" "objsubstitute" "openfile" "planarconnect"
-    "planardelay" "planardelay2" "planarweight" "planarweight2" "plane"
-    "pope" "position" "pow" "printargs" "printenv" "pushe" "putevent"
-    "pwe" "quit" "rand" "randcoord" "randseed" "readcell" "readfile"
-    "reclaim" "relposition" "resched" "reset" "resetsynchanbuffers"
-    "restore" "rotcoord" "round" "save" "scaletabchan" "setclock"
+    "addfield" "addforwmsg" "addglobal" "addmsg" "addmsgdef"
+    "addobject" "addtask" "argc" "arglist" "argv" "asciidata" "asin"
+    "atan" "async" "barrier" "barrierall" "calcCm" "calcRm" "call"
+    "callfunc" "cd" "ce" "cellsheet" "check" "chr" "clearbuffer"
+    "clearerrors" "clearthread" "clearthreads" "closefile" "convert"
+    "copy" "cos" "countchar" "countelementlist" "cpu" "create"
+    "createmap" "dd3dmsg" "debug" "delete" "deleteaction" "deleteall"
+    "deleteclass" "deletefield" "deleteforwmsg" "deletejob"
+    "deletemsg" "deletemsgdef" "deletetasks" "disable"
+    "duplicatetable" "echo" "egg" "el" "enable" "end" "enddump" "eof"
+    "error" "exists" "exit" "exp" "file2tab" "fileconnect" "findchar"
+    "findsolvefield" "floatformat" "flushfile" "for" "foreach"
+    "gaussian" "gctrace" "gen2spk" "gen3dmsg" "genesis" "getarg"
+    "getclock" "getdate" "getdefault" "getelementlist" "getenv"
+    "getfield" "getfieldnames" "getglobal" "getinput" "getmsg"
+    "getparamGA" "getpath" "getsolvechildname" "getsolvecompname"
+    "getstat" "getsyncount" "getsyndest" "getsynindex" "getsynsrc"
+    "gftrace" "h" "help" "if" "include" "initdump"
+    "initparamBF" "initparamCG" "initparamGA" "initparamSA"
+    "initparamSS" "input" "isa" "le" "listactions" "listcommands"
+    "listescape" "listfiles" "listglobals" "listobjects" "loadtab"
+    "log" "logfile" "max" "maxerrors" "maxwarnings" "min" "move"
+    "msgsubstitute" "mynode" "mypvmid" "mytotalnode" "myzone" "nnodes"
+    "normalizeweights" "notes" "npvmcpu" "ntotalnodes" "nzones"
+    "objsubstitute" "openfile" "paroff" "paron" "pastechannel"
+    "pixflags" "planarconnect" "planardelay" "planardelay2"
+    "planarweight" "planarweight2" "plane" "pope" "position" "pow"
+    "printargs" "printenv" "pushe" "putevent" "pwe" "quit" "raddmsg"
+    "rallcalcRm" "rand" "randcomp" "randcoord" "randseed" "readcell"
+    "readfile" "readsolve" "reclaim" "relposition" "resched" "reset"
+    "resetfastmsg" "resetsynchanbuffers" "restore" "return" "rmsmatch"
+    "rotcoord" "round" "rshowmsg" "rvolumeconnect" "rvolumedelay"
+    "rvolumeweight" "save" "scaleparms" "scaletabchan" "setclock"
     "setdefault" "setenv" "setfield" "setfieldprot" "setglobal"
-    "setmethod" "setparamGA" "setpostscript" "setprompt" "setrand"
-    "setrandfield" "setsearch" "setupNaCa" "setupalpha" "setupgate"
-    "setupghk" "setuptau" "sh" "shapematch" "showclocks" "showcommand"
-    "showfield" "showmsg" "showobject" "showsched" "showstat" "silent"
-    "simdump" "simobjdump" "simundump" "sin" "spkcmp" "sqrt" "stack"
-    "step" "stop" "strcat" "strcmp" "strlen" "strncmp" "strsub"
-    "substituteinfo" "substring" "swapdump" "syndelay" "tab2file" "tan"
-    "trunc" "tweakalpha" "tweaktau" "useclock" "version" "volumeconnect"
-    "volumedelay" "volumedelay2" "volumeweight" "volumeweight2" "where"
-    "writecell" "writefile" "xcolorscale" "xgetstat" "xps" "xsimplot"
-    "include" "pixflags" "xflushevents" "xhide" "xinit" "xlower" "xmap"
-    "xpixflags" "xraise" "xshow" "xshowontop" "xtextload" "xupdate")
+    "setmethod" "setparamGA" "setpostscript" "setpriority" "setprompt"
+    "setrand" "setrandfield" "setsearch" "setspatialfield"
+    "setupalpha" "setupgate" "setupghk" "setupNaCa" "setuptau" "sh"
+    "shapematch" "showclocks" "showcommand" "showfield" "showjobs"
+    "showmsg" "showobject" "showsched" "showstat" "silent" "simdump"
+    "simobjdump" "simundump" "sin" "spkcmp" "sqrt" "stack" "step"
+    "stop" "strcat" "strcmp" "strlen" "strncmp" "strsub"
+    "substituteinfo" "substring" "swapdump" "syndelay" "tab2file"
+    "tan" "threadsoff" "threadson" "trunc" "tweakalpha" "tweaktau"
+    "upload" "useclock" "version" "volumeconnect" "volumedelay"
+    "volumedelay2" "volumeweight" "volumeweight2" "waiton" "warning"
+    "where" "while" "writecell" "writefile" "xcolorscale"
+    "xflushevents" "xgetstat" "xhide" "xinit" "xmap" "xpixflags" "xps"
+    "xshow" "xshowontop" "xsimplot" "xtextload")
     "Keyword and function highlighting expressions for GENESIS mode.")
 
 (defvar genesis-types
@@ -118,22 +140,26 @@
     "Data type highlighting list for GENESIS mode.")
 
 (defvar genesis-objects
-  '("Ca_concen" "Kpores" "Mg_block" "Napores" "PID" "RC" "asc_file"
-    "autocorr" "calculator" "compartment" "concchan" "concpool"
-    "crosscorr" "ddsyn" "dif2buffer" "difbuffer" "diffamp" "difshell"
-    "disk_in" "disk_out" "diskio" "efield" "enz" "event_tofile"
-    "facsynchan" "fixbuffer" "freq_monitor" "funcgen" "fura2" "ghk"
-    "hebbsynchan" "hh_channel" "hillpump" "hsolve" "interspike" "leakage"
-    "metadata" "mmpump" "nernst" "neutral" "paramtableBF" "paramtableCG"
-    "paramtableGA" "paramtableSA" "paramtableSS" "peristim" "playback"
-    "pool" "pulsegen" "randomspike" "reac" "receptor" "receptor2"
+  '(;; genesis2.3 object list from Jim Perlewitz
+    "asc_file" "autocorr" "axon" "Ca_concen" "calculator" "channelC2"
+    "channelC3" "compartment" "concchan" "concpool" "crosscorr"
+    "ddsyn" "difbuffer" "dif2buffer" "diffamp" "difshell" "disk_out"
+    "disk_in" "diskio" "efield" "enz" "event_tofile" "facsynchan"
+    "fixbuffer" "ferq_monitor" "funcgen" "fura2" "ghk" "hebbsynchan"
+    "hh_channel" "hillpump" "hsolve" "interspike" "izcell" "Kpores"
+    "ksolve" "leakage" "metadata" "Mg_block" "mmpump" "Napores"
+    "nernst" "neutral" "par_asc_file" "par_disk_out" "paramtableBF"
+    "paramtableCG" "paramtableGA" "paramtableSA" "paramtableSS"
+    "peristim" "PID" "playback" "pool" "postmaster" "pulsegen"
+    "randomspike" "RC" "reac" "receptor" "receptor2" "res_asc_file"
     "script_out" "sigmoid" "spikegen" "spikehistory" "symcompartment"
-    "synchan" "synchan2" "tab2Dchannel" "tabchannel" "tabcurrent"
-    "tabgate" "table" "table2D" "taupump" "timetable" "variable"
-    "vdep_channel" "xbutton" "xcell" "xcoredraw" "xdialog" "xdraw"
-    "xdumbdraw" "xfastplot" "xform" "xgif" "xgraph" "ximage" "xlabel"
-    "xpix" "xplot" "xshape" "xsphere" "xtext" "xtoggle" "xtree" "xvar"
-    "xview")
+    "synchan" "synchan2" "SynE_object" "SynG_object" "SynS_object"
+    "tab2Dchannel" "tabchannel" "tabcurrent" "tabgate" "table"
+    "table2D" "taupump" "timetable" "variable" "vdep_channel"
+    "vdep_gate" "xaxis" "xbutton" "xcell" "xcoredraw" "xdialog"
+    "xdraw" "xdumbdraw" "xfastplot" "xform" "xgif" "xgraph" "ximage"
+    "xlabel" "xpix" "xplot" "xshape" "xsphere" "xtext" "xtoggle"
+    "xtree" "xvar" "xview")
     "Object highlighting expressions for GENESIS mode.")
 
 ;; Modified from DerivedMode example
@@ -167,7 +193,6 @@
 
 ;; CG: This is the main function I needed from WPDL-Mode. It's been
 ;; heavily modified for GENESIS syntax.
-;; BUG: New keywords on line continuation ends are ignored
 (defun genesis-indent-line ()
   "Indent current line as GENESIS code."
   (interactive)

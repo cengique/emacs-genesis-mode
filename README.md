@@ -12,12 +12,16 @@ Installation:
  If it is not autoloaded when Emacs starts, place the following lines in
  your `~/.emacs` file:
 
- 	(add-to-list 'load-path "~/.emacs.d/")
- 	(require 'genesis-mode)
+```lisp
+(add-to-list 'load-path "~/.emacs.d/")
+(require 'genesis-mode)
+```
 
  In *XEmacs*, place `genesis-mode.el` under `~/.xemacs/` and add the following in your `~/.xemacs/init.el` file:
 
- 	(load-file "~/.xemacs/genesis-mode.el")
+```lisp
+(load-file "~/.xemacs/genesis-mode.el")
+```
 
 Functionality:
 ------

@@ -78,6 +78,15 @@
     genesis-mode-map)
   "Keymap for GENESIS major mode")
 
+(defvar genesis-mode-syntax-table
+  (let ((genesis-mode-syntax-table (make-syntax-table)))
+    ;; Comment styles are same as C++
+    (modify-syntax-entry ?/ ". 124b" genesis-mode-syntax-table)
+    (modify-syntax-entry ?* ". 23" genesis-mode-syntax-table)
+    (modify-syntax-entry ?\n "> b" genesis-mode-syntax-table)
+    genesis-mode-syntax-table)
+  "Syntax table for genesis-mode")
+
 ;; recognise .g files as genesis files
 (add-to-list 'auto-mode-alist '("\\.g\\'" . genesis-mode))
 
@@ -335,7 +344,7 @@
 
 
 ;; CG: Use DerivedMode from c-mode to take comment definitions
-(define-derived-mode genesis-mode c-mode "GENESIS script"
+(define-derived-mode genesis-mode fundamental-mode "GENESIS script"
     "GENESIS major mode is for editing GENESIS neuron simulator script files.
 
 The hook variable `genesis-mode-hook' is run with no args, if that
@@ -360,11 +369,17 @@ Key bindings:
     ;; otherwise it gets the default value
     (when genesis-tab-width
       (setq tab-width genesis-tab-width))
-  
+
     ;; indentation
     (set (make-local-variable 'indent-line-function) 'genesis-indent-line)  
 
-    ;; From Hugo (these mess up comment indentation)
+    ;; comment highlighting
+    (setq comment-start "/*")
+    (setq comment-end "*/")
+
+    (set-syntax-table genesis-mode-syntax-table)
+    
+    ;; From Hugo (these override Genesis indentation)
     ;(c-common-init)
 
     ;; Call mode hooks
